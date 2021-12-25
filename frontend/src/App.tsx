@@ -1,26 +1,59 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "siimple";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import Story from "./story/Story";
+
+type AppProps = {};
+type AppState = {
+  story?: string;
+  lines?: string[];
+};
+
+class App extends React.Component<AppProps, AppState> {
+  state: AppState = {};
+
+  render() {
+    return (
+      <div className="layout">
+        <div>
+          <Story
+            story={this.state.story}
+            lines={this.state.lines}
+            onSubmit={(story, lines) =>
+              this.setState({ story: story, lines: lines })
+            }
+          />
+        </div>
+        <div>
+          <Story
+            story={this.state.story}
+            lines={this.state.lines}
+            onSubmit={(story, lines) =>
+              this.setState({ story: story, lines: lines })
+            }
+          />
+        </div>
+        <div>
+          <Story
+            story={this.state.story}
+            lines={this.state.lines}
+            onSubmit={(story, lines) =>
+              this.setState({ story: story, lines: lines })
+            }
+          />
+        </div>
+        <div>
+          <Story
+            story={this.state.story}
+            lines={this.state.lines}
+            onSubmit={(story, lines) =>
+              this.setState({ story: story, lines: lines })
+            }
+          />
+        </div>
+      </div>
+    );
+  }
 }
 
 export default App;

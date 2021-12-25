@@ -24,8 +24,30 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <title>HAICOR Project</title>
+
+    <style>
+      html,
+      body,
+      #root {
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .layout {
+        height: calc(100% - 1rem);
+        display: grid;
+        padding: 0.5rem;
+        gap: 0.5rem 0.5rem;
+        grid-template-rows: 1fr 1fr;
+        grid-template-columns: 2fr 3fr;
+        grid-template-areas:
+          ". ."
+          ". .";
+      }
+    </style>
   </head>
+
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
