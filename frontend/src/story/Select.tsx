@@ -25,15 +25,15 @@ class Select extends React.Component<SelectProps> {
 
   render() {
     return (
-      <>
-        <label className="siimple-label">{this.props.label}</label>
+      <div className="siimple-form-field">
+        <label className="siimple-form-field-label">{this.props.label}</label>
         <select
           className="siimple-select siimple-select--fluid"
           onChange={(event) => this.props.onChange(event.target.value)}
         >
           {this.renderOptions()}
         </select>
-      </>
+      </div>
     );
   }
 }

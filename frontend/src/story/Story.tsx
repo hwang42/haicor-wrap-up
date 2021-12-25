@@ -35,10 +35,10 @@ class Story extends React.Component<StoryProps, StoryState> {
       .then((value) => this.props.onChange(value.story, value.lines));
   }
 
-  handleStoryChange(index: number, content: string) {
+  handleLineChange(line: number, content: string) {
     this.props.onChange(
-      this.props.story,
-      this.props.lines.map((v, i) => (i === index ? content : v))
+      undefined,
+      this.props.lines.map((value, index) => (index === line ? content : value))
     );
   }
 
@@ -49,42 +49,52 @@ class Story extends React.Component<StoryProps, StoryState> {
   render() {
     return (
       <div className="siimple-card">
-        <div className="siimple-card-header">Story Selection</div>
+        <div className="siimple-card-header">Story Context</div>
         <div className="siimple-card-body">
-          <div className="siimple-grid">
-            <div className="siimple-grid-row">
-              <div className="siimple-grid-col siimple-grid-col--4">
-                <Select
-                  label="Ranges:"
-                  options={this.state.ranges}
-                  onChange={(value) => this.handleRangeChange(value)}
-                />
-              </div>
-              <div className="siimple-grid-col siimple-grid-col--8">
-                <Select
-                  label="Titles:"
-                  options={this.state.titles}
-                  onChange={(value) => this.handleTitleChange(value)}
-                />
-              </div>
-            </div>
+          <Select
+            label="Ranges:"
+            options={this.state.ranges}
+            onChange={(value) => this.handleRangeChange(value)}
+          />
 
-            <div className="siimple-grid-row">
-              <div className="siimple-grid-col siimple-grid-col--12 siimple-form-field">
-                <label className="siimple-form-field-label">Content:</label>
-                {this.props.lines.map((value, index) => (
-                  <input
-                    type="text"
-                    className="siimple-input siimple-input--fluid siimple--my-1"
-                    key={index}
-                    value={value}
-                    onChange={(event) =>
-                      this.handleStoryChange(index, event.target.value)
-                    }
-                  />
-                ))}
-              </div>
-            </div>
+          <Select
+            label="Titles:"
+            options={this.state.titles}
+            onChange={(value) => this.handleTitleChange(value)}
+          />
+
+          <div className="siimple-form-field">
+            <label className="siimple-form-field-label">Story:</label>
+            <input
+              type="text"
+              className="siimple-input siimple-input--fluid siimple--my-1"
+              value={this.props.lines[0]}
+              onChange={(event) => this.handleLineChange(0, event.target.value)}
+            />
+            <input
+              type="text"
+              className="siimple-input siimple-input--fluid siimple--my-1"
+              value={this.props.lines[1]}
+              onChange={(event) => this.handleLineChange(1, event.target.value)}
+            />
+            <input
+              type="text"
+              className="siimple-input siimple-input--fluid siimple--my-1"
+              value={this.props.lines[2]}
+              onChange={(event) => this.handleLineChange(2, event.target.value)}
+            />
+            <input
+              type="text"
+              className="siimple-input siimple-input--fluid siimple--my-1"
+              value={this.props.lines[3]}
+              onChange={(event) => this.handleLineChange(3, event.target.value)}
+            />
+            <input
+              type="text"
+              className="siimple-input siimple-input--fluid siimple--mt-1"
+              value={this.props.lines[4]}
+              onChange={(event) => this.handleLineChange(4, event.target.value)}
+            />
           </div>
         </div>
       </div>
