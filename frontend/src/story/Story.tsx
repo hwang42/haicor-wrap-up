@@ -63,8 +63,8 @@ class Story extends React.Component<StoryProps, StoryState> {
             onChange={(value) => this.handleTitleChange(value)}
           />
 
-          <div className="siimple-form-field">
-            <label className="siimple-form-field-label">Story:</label>
+          <div className="siimple-field siimple--my-2">
+            <label className="siimple-field-label">Story:</label>
             <input
               type="text"
               className="siimple-input siimple-input--fluid siimple--my-1"
@@ -91,7 +91,7 @@ class Story extends React.Component<StoryProps, StoryState> {
             />
             <input
               type="text"
-              className="siimple-input siimple-input--fluid siimple--mt-1"
+              className="siimple-input siimple-input--fluid siimple--my-1"
               value={this.props.lines[4]}
               onChange={(event) => this.handleLineChange(4, event.target.value)}
             />

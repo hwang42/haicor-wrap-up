@@ -50,6 +50,38 @@ class API {
       .then((response) => response.json())
       .then((response: ReturnType) => response);
   }
+
+  // API calls related to the Step component
+  async step_inference(parameters: any) {
+    type POSTReturnType = { uuid: string };
+    type GETReturnType = { result?: [number, string][] };
+
+    // post inference task and obtain UUID
+    const uuid = await fetch(`${this.base}/api/step`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(parameters),
+    })
+      .then((response) => response.json())
+      .then((response: POSTReturnType) => response.uuid)
+      .catch((error) => alert(error));
+
+    // wait for inference task to finish
+    let result = null;
+    while (result === null) {
+      result = await fetch(`${this.base}/api/step/${uuid}`)
+        .then((response) => response.json())
+        .then((response: GETReturnType) => response.result)
+        .catch((error) => alert(error));
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    return result!;
+  }
 }
 
 export default new API();

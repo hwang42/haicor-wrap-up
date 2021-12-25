@@ -3,10 +3,15 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 import csv
+import uuid
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+from flask.helpers import send_from_directory
 from flask.wrappers import Response
 from flask_cors import CORS
+
+import reason
+import thread
 
 # ========================= LOADING ROCSTORIES DATASET =========================
 with open("./rocstory.csv", "r") as file:
@@ -17,6 +22,11 @@ with open("./rocstory.csv", "r") as file:
 
 app = Flask(__name__, static_url_path="/", static_folder="../frontend/build")
 CORS(app)
+
+
+@app.route("/")
+def index() -> Response:
+    return send_from_directory(app.static_folder, "index.html")
 
 
 @app.route("/api/story")
@@ -64,3 +74,33 @@ def query_story_text(uuid: str) -> Response:
     lines = lines if len(lines) == 5 else None  # turn [None] to None
 
     return jsonify({"uuid": uuid, "title": title, "lines": lines})
+
+
+@app.route("/api/step", methods=["POST"])
+def setup_step_task() -> Response:
+    query = request.json
+    number = query.pop("number")
+    prompt = reason.prompt(**query)
+
+    id = str(uuid.uuid4())
+    task = thread.StepTask(prompt, number)
+    thread.threads[id] = task
+    task.start()
+
+    return jsonify({"uuid": id})
+
+
+@app.route("/api/step/<uuid>")
+def query_step_task(uuid: str) -> Response:
+    if uuid not in thread.threads:  # invalid uuid
+        return jsonify({"result": []})
+
+    if thread.threads[uuid].is_alive():  # in progress
+        return jsonify({"result": None})
+
+    # finished
+    task = thread.threads.pop(uuid)
+    result = task.result
+    task.join()
+
+    return jsonify({"result": result})

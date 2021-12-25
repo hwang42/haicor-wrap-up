@@ -1,6 +1,7 @@
 import React from "react";
 import "siimple";
 
+import Step from "./step/Step";
 import Story from "./story/Story";
 
 type AppProps = {};
@@ -15,15 +16,17 @@ class App extends React.Component<AppProps, AppState> {
   render() {
     return (
       <div className="layout">
-        <div>
-          <Story
-            story={this.state.story}
-            lines={this.state.lines}
-            onChange={(story, lines) =>
-              this.setState({ story: story, lines: lines })
-            }
-          />
-        </div>
+        <Story
+          story={this.state.story}
+          lines={this.state.lines}
+          onChange={(story, lines) =>
+            this.setState({ story: story, lines: lines })
+          }
+        />
+
+        <div />
+
+        <Step lines={this.state.lines} />
       </div>
     );
   }
