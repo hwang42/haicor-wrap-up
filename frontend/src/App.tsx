@@ -6,11 +6,11 @@ import Story from "./story/Story";
 type AppProps = {};
 type AppState = {
   story?: string;
-  lines?: string[];
+  lines: string[];
 };
 
 class App extends React.Component<AppProps, AppState> {
-  state: AppState = {};
+  state: AppState = { lines: ["", "", "", "", ""] };
 
   render() {
     return (
@@ -19,34 +19,7 @@ class App extends React.Component<AppProps, AppState> {
           <Story
             story={this.state.story}
             lines={this.state.lines}
-            onSubmit={(story, lines) =>
-              this.setState({ story: story, lines: lines })
-            }
-          />
-        </div>
-        <div>
-          <Story
-            story={this.state.story}
-            lines={this.state.lines}
-            onSubmit={(story, lines) =>
-              this.setState({ story: story, lines: lines })
-            }
-          />
-        </div>
-        <div>
-          <Story
-            story={this.state.story}
-            lines={this.state.lines}
-            onSubmit={(story, lines) =>
-              this.setState({ story: story, lines: lines })
-            }
-          />
-        </div>
-        <div>
-          <Story
-            story={this.state.story}
-            lines={this.state.lines}
-            onSubmit={(story, lines) =>
+            onChange={(story, lines) =>
               this.setState({ story: story, lines: lines })
             }
           />

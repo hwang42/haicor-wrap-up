@@ -1,46 +1,54 @@
 class API {
   base: string = "http://localhost:3001";
 
-  ranges?: [string, string][];
   titles?: [string, string][];
+  ranges?: [string, string][];
 
-  // Story related API calls
-  async populate_stories() {
-    return fetch(`${this.base}/api/story`)
+  // API calls related to the Story component
+  async query_and_cache() {
+    type ReturnType = { stories: [string, string][] };
+
+    // populate and cache this.titles
+    this.titles = await fetch(`${this.base}/api/story`)
       .then((response) => response.json())
-      .then(({ stories }) => (this.titles = stories));
+      .then((response: ReturnType) => response.stories)
+      .catch((error) => {
+        alert(error);
+        return [];
+      });
+
+    // populate and cache this.ranges
+    this.ranges = [];
+    for (let group = 0; group * 1000 < this.titles.length; group++) {
+      const lower = group * 1000;
+      const upper = Math.min(lower + 1000, this.titles.length);
+      this.ranges.push([group.toString(), `${lower} - ${upper}`]);
+    }
   }
 
   async query_ranges() {
-    if (this.titles === undefined)
-      await this.populate_stories().catch((error) => alert(error));
-
-    if (this.ranges === undefined) {
-      this.ranges = [];
-      for (let i = 0; i * 1000 < this.titles!.length; i++) {
-        this.ranges.push([
-          `${i}`,
-          `${i * 1000} - ${Math.min((i + 1) * 1000, this.titles!.length)}`,
-        ]);
-      }
-    }
+    if (this.titles === undefined || this.ranges === undefined)
+      await this.query_and_cache();
 
     return this.ranges;
   }
 
-  async query_stories(range: string) {
-    if (this.titles === undefined)
-      await this.populate_stories().catch((error) => alert(error));
+  async query_titles(group: string) {
+    if (this.titles === undefined || this.ranges === undefined)
+      await this.query_and_cache();
 
-    const value = parseInt(range);
+    const lower = parseInt(group) * 1000;
+    const upper = lower + 1000;
 
-    return this.titles!.slice(value * 1000, (value + 1) * 1000);
+    return this.titles!.slice(lower, upper);
   }
 
-  async query_content(uuid: string) {
+  async query_story(uuid: string) {
+    type ReturnType = { uuid: string; title?: string; lines?: string[] };
+
     return fetch(`${this.base}/api/story/${uuid}`)
       .then((response) => response.json())
-      .then(({ content }) => content);
+      .then((response: ReturnType) => response);
   }
 }
 
