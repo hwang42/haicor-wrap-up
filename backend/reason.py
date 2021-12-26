@@ -11,10 +11,6 @@ import numpy as np
 import torch
 from transformers import T5ForConditionalGeneration, T5Tokenizer
 
-MAX_LENGTH = 128
-BEAM_FACTOR = 2
-BATCH_LIMIT = 64
-
 # =================================== MODEL ====================================
 token = T5Tokenizer.from_pretrained("./checkpoint")
 model = T5ForConditionalGeneration.from_pretrained("./checkpoint")
@@ -59,81 +55,99 @@ def prompt(usage: str, order: str, aspect: str, context: list[str], question: st
 
 
 # ================================ MODEL QUERY =================================
+BRANCHING_FACTOR = 1.5
+GENERATION_LENGTH = 128
+MAXIMUM_BATCH_SIZE = 512
+
+
 @singledispatch
-def generate(input, branch):
-    raise NotImplementedError()
+def generate(input, number):
+    raise NotImplementedError(f"Unsupported input type: {type(input)}")
 
 
-@generate.register
-def _(input: str, branch: int) -> list[tuple[str, str, float]]:
-    """Generate `branch` number of inferences for `input` prompt.
+@generate.register(str)
+def _(input: str, number: int) -> list[tuple[str, str, float]]:
+    """Generate `number` number of inferences for `input` prompt.
 
     Parameters
     ----------
     input : str
-        The input prompt for the language model.
-    branch : int
-        The total number of results to be inferred.
+        The prompt for the language model, can be generated using `prompt`.
+    number : int
+        The total number of inferences to be made based on `input` prompt.
 
     Returns
     -------
     list[tuple[str, str, float]]
         A list of `(prompt, result, score)` tuples.
     """
-    # query language model, obtain tensor results
+    # query language model
     input_ids = token([input], return_tensors="pt").input_ids.to("cuda")
-    outputs = model.generate(input_ids=input_ids,
-                             max_length=MAX_LENGTH,
-                             num_beams=round(BEAM_FACTOR * branch),
-                             num_return_sequences=branch,
-                             output_scores=True,
-                             return_dict_in_generate=True)
+    generated = model.generate(
+        input_ids=input_ids,
+        max_length=GENERATION_LENGTH,
+        num_beams=int(np.ceil(BRANCHING_FACTOR * number)),
+        num_return_sequences=number,
+        output_scores=True,
+        return_dict_in_generate=True
+    )
 
-    # convert tensor results into usable formats
-    results = token.batch_decode(outputs.sequences, skip_special_tokens=True)
-    scores = [score.item() for score in np.exp(outputs.sequences_scores.cpu())]
+    # convert and cleanup
+    texts = token.batch_decode(generated.sequences, skip_special_tokens=True)
+    scores = [i.item() for i in np.exp(generated.sequences_scores.cpu())]
+    results = list(map(tuple, zip(repeat(input, number), texts, scores)))
 
-    return [(prompt, result, score) for prompt, result, score
-            in zip(repeat(input, branch), results, scores)]
+    del input_ids
+    del generated
+    torch.cuda.empty_cache()
+
+    return results
 
 
-@generate.register
-def _(input: list, branch: int) -> list[tuple[str, str, float]]:
-    """Generate `branch` number of inferences for each `input` prompt.
+@generate.register(list)
+def _(input: list[str], number: int) -> list[tuple[str, str, float]]:
+    """Generate `number` number of inferences for each `input` prompt.
 
     Parameters
     ----------
-    input : list
-        The input prompts for the language model.
-    branch : int
-        The total number of results to be inferred for each prompt.
+    input : list[str]
+        The prompts for the language model, can be generated using `prompt`.
+    number : int
+        The total number of inferences to be made based on each `input` prompt.
 
     Returns
     -------
     list[tuple[str, str, float]]
         A list of `(prompt, result, score)` tuples.
     """
-    if len(input) > BATCH_LIMIT:  # breaks into multiple batches
-        inputs = [input[i:i + BATCH_LIMIT] for i in
-                  range(0, len(input), BATCH_LIMIT)]
-        return list(chain.from_iterable(generate(i, branch) for i in inputs))
+    if len(input) > MAXIMUM_BATCH_SIZE:  # breaks large query into batches
+        BATCH_SIZE = int(np.floor(MAXIMUM_BATCH_SIZE / number)) or 1
 
-    # query language model, obtain tensor results
+        inputs = range(0, len(input), BATCH_SIZE)
+        inputs = (input[i:i + BATCH_SIZE] for i in inputs)
+
+        return list(chain.from_iterable(generate(i, number) for i in inputs))
+
+    # query language model
     input_ids = token(input, return_tensors="pt").input_ids.to("cuda")
-    outputs = model.generate(input_ids=input_ids,
-                             max_length=MAX_LENGTH,
-                             num_beams=round(BEAM_FACTOR * branch),
-                             num_return_sequences=branch,
-                             output_scores=True,
-                             return_dict_in_generate=True)
+    generated = model.generate(
+        input_ids=input_ids,
+        max_length=GENERATION_LENGTH,
+        num_beams=int(np.ceil(BRANCHING_FACTOR * number)),
+        num_return_sequences=number,
+        output_scores=True,
+        return_dict_in_generate=True
+    )
 
-    # convert tensor results into usable formats
-    results = token.batch_decode(outputs.sequences, skip_special_tokens=True)
-    scores = [score.item() for score in np.exp(outputs.sequences_scores.cpu())]
-    temp = chain.from_iterable(repeat(i, branch) for i in input)
+    # convert and cleanup
+    texts = token.batch_decode(generated.sequences, skip_special_tokens=True)
+    scores = [i.item() for i in np.exp(generated.sequences_scores.cpu())]
+    prompts = chain.from_iterable(repeat(i, number) for i in input)
+    results = list(map(tuple, zip(prompts, texts, scores)))
 
+    del input_ids
+    del generated
     torch.cuda.empty_cache()
 
-    return [(prompt, result, score) for prompt, result, score
-            in zip(temp, results, scores)]
+    return results
 # ================================ MODEL QUERY =================================
