@@ -7,7 +7,7 @@ type StepProps = { className?: string; context: string[] };
 type StepState = {
   parse: boolean;
   state?: "waiting" | "running" | "stopped";
-  result?: [string, string, number][];
+  result?: [number, string][];
 };
 
 class Step extends React.Component<StepProps, StepState> {
@@ -18,7 +18,7 @@ class Step extends React.Component<StepProps, StepState> {
     this.setState({ state: state });
   }
 
-  handleResult(result: [string, string, number][]) {
+  handleResult(result: [number, string][]) {
     this.setState({ result: result });
   }
 

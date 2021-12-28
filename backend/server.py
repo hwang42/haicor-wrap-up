@@ -3,7 +3,6 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 import csv
-import uuid
 
 from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_cors import CORS
@@ -77,9 +76,17 @@ def query_story_text(uuid: str) -> Response:
 @app.route("/api/step", methods=["POST"])
 def setup_step_task() -> Response:
     query = request.json
-    number = query.pop("number")
 
-    return jsonify({"uuid": reasoner.submit_step(prompt(**query), number)})
+    usage = query["usage"]
+    order = query["order"]
+    aspect = query["aspect"]
+    context = query["context"]
+    question = query["question"]
+    total = query["number"]
+
+    uuid = reasoner.submit_step(usage, order, aspect, context, question, total)
+
+    return jsonify({"uuid": uuid})
 
 
 @app.route("/api/step/<uuid>")

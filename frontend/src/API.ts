@@ -62,7 +62,7 @@ class API {
     type POSTReturnType = { uuid: string };
     type GETReturnType = {
       state: "waiting" | "running" | "stopped";
-      result?: [string, string, number][];
+      result?: [number, string][];
     };
 
     // post inference task and obtain UUID

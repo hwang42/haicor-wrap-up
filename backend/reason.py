@@ -11,11 +11,15 @@ import numpy as np
 import torch
 from transformers import T5ForConditionalGeneration, T5Tokenizer
 
-# =================================== MODEL ====================================
-token = T5Tokenizer.from_pretrained("./checkpoint")
-model = T5ForConditionalGeneration.from_pretrained("./checkpoint")
-model.to("cuda")  # transform model to GPU for faster inference
-# =================================== MODEL ====================================
+# =================================== MODELS ===================================
+cs_token = T5Tokenizer.from_pretrained("./checkpoint")
+cs_model = T5ForConditionalGeneration.from_pretrained("./checkpoint")
+cs_model.to("cuda")  # this model is used for commonsense knowledge
+
+t5_token = T5Tokenizer.from_pretrained("t5-small")
+t5_model = T5ForConditionalGeneration.from_pretrained("t5-small")
+t5_model.to("cuda")  # this model is used for natural language inference
+# =================================== MODELS ===================================
 
 
 # ================================== UTILITY ===================================
@@ -57,7 +61,7 @@ def prompt(usage: str, order: str, aspect: str, context: list[str], question: st
 # ================================ MODEL QUERY =================================
 BRANCHING_FACTOR = 1.5
 GENERATION_LENGTH = 128
-MAXIMUM_BATCH_SIZE = 512
+MAXIMUM_BATCH_SIZE = 256
 
 
 @singledispatch
@@ -81,8 +85,18 @@ def _(input: str, number: int) -> list[tuple[str, str, float]]:
     list[tuple[str, str, float]]
         A list of `(prompt, result, score)` tuples.
     """
+    if input.startswith("glucose:"):
+        token, model = cs_token, cs_model
+    else:
+        token, model = t5_token, t5_model
+
     # query language model
-    input_ids = token([input], return_tensors="pt").input_ids.to("cuda")
+    input_ids = token(
+        input,
+        padding=True,
+        truncation=True,
+        max_length=len(input),
+        return_tensors="pt").input_ids.to("cuda")
     generated = model.generate(
         input_ids=input_ids,
         max_length=GENERATION_LENGTH,
@@ -128,8 +142,18 @@ def _(input: list[str], number: int) -> list[tuple[str, str, float]]:
 
         return list(chain.from_iterable(generate(i, number) for i in inputs))
 
+    if input[0].startswith("glucose:"):
+        token, model = cs_token, cs_model
+    else:
+        token, model = t5_token, t5_model
+
     # query language model
-    input_ids = token(input, return_tensors="pt").input_ids.to("cuda")
+    input_ids = token(
+        input,
+        padding=True,
+        truncation=True,
+        max_length=max(map(len, input)),
+        return_tensors="pt").input_ids.to("cuda")
     generated = model.generate(
         input_ids=input_ids,
         max_length=GENERATION_LENGTH,

@@ -5,7 +5,7 @@ import API from "../API";
 type ConfigProps = {
   context: string[];
   onState: (state: "waiting" | "running" | "stopped") => any;
-  onResult: (result: [string, string, number][]) => any;
+  onResult: (result: [number, string][]) => any;
 };
 type ConfigState = {
   usage: "general" | "premise";

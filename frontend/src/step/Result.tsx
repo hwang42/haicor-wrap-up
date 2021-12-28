@@ -2,12 +2,12 @@ import React from "react";
 
 const pattern = /^(.+)>(.+)>(.+)$/;
 
-type ResultProps = { parse: boolean; result: [string, string, number] };
+type ResultProps = { parse: boolean; result: [number, string] };
 
 class Result extends React.Component<ResultProps> {
   renderUnstructured() {
     const {
-      result: [prompt, result, score],
+      result: [score, result],
     } = this.props;
 
     return (
@@ -30,7 +30,7 @@ class Result extends React.Component<ResultProps> {
 
   renderStructured() {
     const {
-      result: [prompt, result, score],
+      result: [score, result],
     } = this.props;
     const match = pattern.exec(result);
 
