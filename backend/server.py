@@ -5,13 +5,11 @@
 import csv
 import uuid
 
-from flask import Flask, jsonify, request
-from flask.helpers import send_from_directory
-from flask.wrappers import Response
+from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-import reason
-import thread
+from reason import prompt
+from thread import reasoner
 
 # ========================= LOADING ROCSTORIES DATASET =========================
 with open("./rocstory.csv", "r") as file:
@@ -80,27 +78,13 @@ def query_story_text(uuid: str) -> Response:
 def setup_step_task() -> Response:
     query = request.json
     number = query.pop("number")
-    prompt = reason.prompt(**query)
 
-    id = str(uuid.uuid4())
-    task = thread.StepTask(prompt, number)
-    thread.threads[id] = task
-    task.start()
-
-    return jsonify({"uuid": id})
+    return jsonify({"uuid": reasoner.submit_step(prompt(**query), number)})
 
 
 @app.route("/api/step/<uuid>")
 def query_step_task(uuid: str) -> Response:
-    if uuid not in thread.threads:  # invalid uuid
-        return jsonify({"result": []})
+    if (state := reasoner.state.get(uuid, "")) != "stopped":
+        return jsonify({"state": state})
 
-    if thread.threads[uuid].is_alive():  # in progress
-        return jsonify({"result": None})
-
-    # finished
-    task = thread.threads.pop(uuid)
-    result = task.result
-    task.join()
-
-    return jsonify({"result": result})
+    return jsonify({"state": state, "result": reasoner.obtain_result(uuid)})

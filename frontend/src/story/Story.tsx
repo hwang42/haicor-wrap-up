@@ -1,7 +1,5 @@
 import React from "react";
 
-import API from "../API";
-
 import Modify from "./Modify";
 import Select from "./Select";
 
@@ -20,14 +18,16 @@ class Story extends React.Component<StoryProps> {
       <section id="story-editor">
         <h1>Reasoning Context</h1>
 
-        <Select onSelect={handler} />
+        <div className="siimple-grid">
+          <Select onSelect={handler} />
 
-        <Modify
-          uuid={uuid}
-          title={title}
-          content={content}
-          onModify={handler}
-        />
+          <Modify
+            uuid={uuid}
+            title={title}
+            content={content}
+            onModify={handler}
+          />
+        </div>
       </section>
     );
   }

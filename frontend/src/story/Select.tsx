@@ -1,4 +1,4 @@
-import React, { ReactText } from "react";
+import React from "react";
 
 import API from "../API";
 
@@ -62,27 +62,25 @@ class Select extends React.Component<SelectProps, SelectState> {
     const { ranges, titles } = this.state;
 
     return (
-      <div className="siimple-grid">
-        <div className="siimple-grid-row">
-          <div className="siimple-grid-col siimple-grid-col--6">
-            <label className="siimple-label">Ranges:</label>
-            <select
-              className="siimple-select siimple-select--fluid"
-              onChange={(event) => this.handleRanges(event)}
-            >
-              {this.renderOptions("Loading...", ranges)}
-            </select>
-          </div>
+      <div className="siimple-grid-row">
+        <div className="siimple-grid-col siimple-grid-col--6">
+          <label className="siimple-label">Ranges:</label>
+          <select
+            className="siimple-select siimple-select--fluid"
+            onChange={(event) => this.handleRanges(event)}
+          >
+            {this.renderOptions("Loading...", ranges)}
+          </select>
+        </div>
 
-          <div className="siimple-grid-col siimple-grid-col--6">
-            <label className="siimple-label">Titles:</label>
-            <select
-              className="siimple-select siimple-select--fluid"
-              onChange={(event) => this.handleTitles(event)}
-            >
-              {this.renderOptions("Select range", titles)}
-            </select>
-          </div>
+        <div className="siimple-grid-col siimple-grid-col--6">
+          <label className="siimple-label">Titles:</label>
+          <select
+            className="siimple-select siimple-select--fluid"
+            onChange={(event) => this.handleTitles(event)}
+          >
+            {this.renderOptions("Select range", titles)}
+          </select>
         </div>
       </div>
     );

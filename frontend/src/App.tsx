@@ -2,6 +2,7 @@ import React from "react";
 
 import "siimple";
 
+import Step from "./step";
 import Story from "./story";
 
 type AppProps = {};
@@ -50,19 +51,24 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   renderBody() {
-    const { mode } = this.state;
+    const { mode, content: context } = this.state;
 
-    switch (mode) {
-      case "step": {
-        return <h1>Step mode</h1>;
-      }
-      case "path": {
-        return <h1>Path mode</h1>;
-      }
-      case "graph": {
-        return <h1>Graph mode</h1>;
-      }
-    }
+    return (
+      <>
+        <Step
+          className={mode === "step" ? undefined : "siimple--display-none"}
+          context={context}
+        />
+
+        <div className={mode === "path" ? undefined : "siimple--display-none"}>
+          <h1>Path mode</h1>
+        </div>
+
+        <div className={mode === "graph" ? undefined : "siimple--display-none"}>
+          <h1>Graph mode</h1>
+        </div>
+      </>
+    );
   }
 
   render() {
@@ -89,7 +95,7 @@ class App extends React.Component<AppProps, AppState> {
 
           <section className="siimple-rule" />
 
-          <section>{this.renderBody()}</section>
+          {this.renderBody()}
         </main>
       </>
     );

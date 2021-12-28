@@ -1,3 +1,13 @@
+type StepParameter = {
+  usage: "general" | "premise";
+  order: "forward" | "backward";
+  aspect: "causal" | "emotional" | "spatial" | "possession" | "miscellaneous";
+  number: number;
+  context: string[];
+  question: string;
+};
+type StepCallback = (state: "waiting" | "running" | "stopped") => any;
+
 class API {
   base: string = "http://localhost:3001";
 
@@ -11,11 +21,7 @@ class API {
     // populate and cache this.titles
     this.titles = await fetch(`${this.base}/api/story`)
       .then((response) => response.json())
-      .then((response: ReturnType) => response.stories)
-      .catch((error) => {
-        alert(error);
-        return [];
-      });
+      .then((response: ReturnType) => response.stories);
 
     // populate and cache this.ranges
     this.ranges = [];
@@ -30,7 +36,7 @@ class API {
     if (this.titles === undefined || this.ranges === undefined)
       await this.query_and_cache();
 
-    return this.ranges;
+    return this.ranges!;
   }
 
   async query_titles(group: string) {
@@ -52,9 +58,12 @@ class API {
   }
 
   // API calls related to the Step component
-  async step_inference(parameters: any) {
+  async step_inference(parameters: StepParameter, callback: StepCallback) {
     type POSTReturnType = { uuid: string };
-    type GETReturnType = { result?: [number, string][] };
+    type GETReturnType = {
+      state: "waiting" | "running" | "stopped";
+      result?: [string, string, number][];
+    };
 
     // post inference task and obtain UUID
     const uuid = await fetch(`${this.base}/api/step`, {
@@ -66,21 +75,21 @@ class API {
       body: JSON.stringify(parameters),
     })
       .then((response) => response.json())
-      .then((response: POSTReturnType) => response.uuid)
-      .catch((error) => alert(error));
+      .then((response: POSTReturnType) => response.uuid);
 
     // wait for inference task to finish
-    let result = null;
-    while (result === null) {
+    let result: GETReturnType = { state: "waiting" };
+    while (result.state !== "stopped") {
       result = await fetch(`${this.base}/api/step/${uuid}`)
         .then((response) => response.json())
-        .then((response: GETReturnType) => response.result)
-        .catch((error) => alert(error));
+        .then((response: GETReturnType) => response);
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      callback(result.state);
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
-    return result!;
+    return result.result!;
   }
 }
 
