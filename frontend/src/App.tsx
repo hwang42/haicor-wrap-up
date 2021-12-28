@@ -2,6 +2,8 @@ import React from "react";
 
 import "siimple";
 
+import Graph from "./graph";
+import Path from "./path";
 import Step from "./step";
 import Story from "./story";
 
@@ -60,13 +62,15 @@ class App extends React.Component<AppProps, AppState> {
           context={context}
         />
 
-        <div className={mode === "path" ? undefined : "siimple--display-none"}>
-          <h1>Path mode</h1>
-        </div>
+        <Path
+          className={mode === "path" ? undefined : "siimple--display-none"}
+          context={context}
+        />
 
-        <div className={mode === "graph" ? undefined : "siimple--display-none"}>
-          <h1>Graph mode</h1>
-        </div>
+        <Graph
+          className={mode === "graph" ? undefined : "siimple--display-none"}
+          context={context}
+        />
       </>
     );
   }

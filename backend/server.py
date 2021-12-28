@@ -7,7 +7,6 @@ import csv
 from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-from reason import prompt
 from thread import reasoner
 
 # ========================= LOADING ROCSTORIES DATASET =========================
@@ -91,6 +90,53 @@ def setup_step_task() -> Response:
 
 @app.route("/api/step/<uuid>")
 def query_step_task(uuid: str) -> Response:
+    if (state := reasoner.state.get(uuid, "")) != "stopped":
+        return jsonify({"state": state})
+
+    return jsonify({"state": state, "result": reasoner.obtain_result(uuid)})
+
+
+@app.route("/api/path", methods=["POST"])
+def setup_path_task() -> Response:
+    query = request.json
+
+    source = query["source"]
+    target = query["target"]
+    context = query["context"]
+    length = query["length"]
+    branch = query["branch"]
+    total = query["total"]
+
+    uuid = reasoner.submit_path(source, target, context, length, branch, total)
+
+    return jsonify({"uuid": uuid})
+
+
+@app.route("/api/path/<uuid>")
+def query_path_task(uuid: str) -> Response:
+    if (state := reasoner.state.get(uuid, "")) != "stopped":
+        return jsonify({"state": state})
+
+    return jsonify({"state": state, "result": reasoner.obtain_result(uuid)})
+
+
+@app.route("/api/graph", methods=["POST"])
+def setup_graph_task() -> Response:
+    query = request.json
+
+    target = query["target"]
+    context = query["context"]
+    length = query["length"]
+    branch = query["branch"]
+    total = query["total"]
+
+    uuid = reasoner.submit_graph(target, context, length, branch, total)
+
+    return jsonify({"uuid": uuid})
+
+
+@app.route("/api/graph/<uuid>")
+def query_graph_task(uuid: str) -> Response:
     if (state := reasoner.state.get(uuid, "")) != "stopped":
         return jsonify({"state": state})
 
